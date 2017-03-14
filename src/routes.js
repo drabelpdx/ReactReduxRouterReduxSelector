@@ -1,7 +1,12 @@
 import React from 'react';
-import { Route } from 'react-router';
-import App from './App.js';
+import { Router, Route } from 'react-router';
+import { App, Home } from './views';
 
-const routes = <Route path='/' component={App} />;
+const routes = (history) => (
+    <Router history={history}>
+      <Route path="/" component={Home} />
+      <Route path='/campaign/:filerId' component={App} />
+    </Router>
+);
 
 export default routes;
