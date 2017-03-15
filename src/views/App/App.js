@@ -5,6 +5,7 @@ import { initializeApp, getSpendingByIdThunk, getTransactionsByIdThunk, getCampa
 import './App.css';
 
 class App extends Component {
+
   componentWillMount() {
     this.props.getSpending(this.props.params.filerId);
     this.props.getTransactions(this.props.params.filerId);
@@ -19,6 +20,57 @@ class App extends Component {
   fetchCampaignDetail = () => this.props.getCampaignDetail(this.props.params.filerId);
 
   renderData = (data) => data.map(datum => <p key={datum.tran_id}>{datum.contributor_payee} recieved {datum.amount}</p>).slice(0, 10);
+
+  getBook = (datum) => {
+    if (datum) {
+      const bookTypes =
+        datum.filter(datum => datum.book_type!=null || datum.book_type!=undefined);
+      const dataByBook = {};
+      bookTypes.forEach((t) => {
+        const book = t.book_type;
+        const bookToUpdate = dataByBook[book];
+          if (bookToUpdate) {
+            dataByBook[book].push(t);
+          } else {
+            dataByBook[book] = [t];
+          }
+      });
+      return dataByBook
+    }
+  }
+
+  buildNodes = (transaction, spending) => {
+    //first node is hard coded, need to grab this dynamicly later
+    const nodes = [{name: "Friends of Ted Wheeler", node: 0}];
+    const links = [];
+    if (transaction && spending) {
+      //for transactions
+      Object.keys(transaction).map((key, i) => {
+        //builds nodes
+        nodes.push({name: key, node: i+1});
+        //builds links
+        transaction[key].map((item) => {
+          links.push({source: i+1, target: 0, value: item.amount })
+        })
+      });
+      //for spending
+      Object.keys(spending).map((key, i) => {
+        //adds nodes from spending not in transaction
+        const pos = nodes.map(function(e) { return e.name; }).indexOf(key);
+        if (pos == -1) {
+          nodes.push({name: key, node: nodes.length+1});
+        }
+        //crosses references nodes for target
+        const node = nodes[pos].node;
+        spending[key].map((item) => {
+          links.push({source: 0, target: node, value: item.amount })
+        })
+      });
+
+    }
+    const myNodes = {nodes: nodes, links: links};
+    return myNodes
+  }
 
   renderTransactions = () => (
     <div>
@@ -42,6 +94,13 @@ class App extends Component {
   );
 
   render() {
+    const transactionDataBook = this.getBook(this.props.transactionData);
+    const spendingDataBook = this.getBook(this.props.spendingData);
+    const myNodes = this.buildNodes(transactionDataBook, spendingDataBook);
+    console.log("tranasactionDataBook", transactionDataBook);
+    console.log("spendingDataBook", spendingDataBook);
+    console.log("myNodes", myNodes);
+
     return (
       <div className="App">
         <div className="App-header">
