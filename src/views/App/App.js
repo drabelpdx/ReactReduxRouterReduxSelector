@@ -45,28 +45,27 @@ class App extends Component {
     const links = [];
     if (transaction && spending) {
       //for transactions
-      Object.keys(transaction).map((key, i) => {
+      Object.keys(transaction).forEach((key, i) => {
         //builds nodes
         nodes.push({name: key, node: i+1});
         //builds links
-        transaction[key].map((item) => {
+        transaction[key].forEach((item) => {
           links.push({source: i+1, target: 0, value: item.amount })
         })
       });
       //for spending
-      Object.keys(spending).map((key, i) => {
+      Object.keys(spending).forEach((key, i) => {
         //adds nodes from spending not in transaction
         const pos = nodes.map(function(e) { return e.name; }).indexOf(key);
-        if (pos == -1) {
+        if (pos === -1) {
           nodes.push({name: key, node: nodes.length+1});
         }
         //crosses references nodes for target
         const node = nodes[pos].node;
-        spending[key].map((item) => {
+        spending[key].forEach((item) => {
           links.push({source: 0, target: node, value: item.amount })
         })
       });
-
     }
     const myNodes = {nodes: nodes, links: links};
     return myNodes
